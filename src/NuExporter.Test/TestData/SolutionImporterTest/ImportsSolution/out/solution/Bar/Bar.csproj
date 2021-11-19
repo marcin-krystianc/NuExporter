@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Foo\Foo.fsproj" />
+  </ItemGroup>
+  <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETStandard' ">
+    <ProjectReference Include="..\Baz\Baz.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="NuGet001" />
+  </ItemGroup>
+</Project>

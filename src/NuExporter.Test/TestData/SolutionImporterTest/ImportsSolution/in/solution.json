@@ -1,0 +1,42 @@
+[
+  {
+    "ProjectName": "Bar.csproj",
+    "Properties": {
+      "TargetFramework": "net5.0",
+      "ManagePackageVersionsCentrally": "true"
+    },
+    "ProjectReferences": {
+      "": [
+        "Foo.fsproj"
+      ],
+      " '$(TargetFrameworkIdentifier)' == '.NETStandard' ": [
+        "Baz.csproj"
+      ]
+    },
+    "PackageReferences": {
+      "": {
+        "NuGet001": "13.0.1"
+      }
+    }
+  },
+  {
+    "ProjectName": "Foo.fsproj",
+    "Properties": {
+      "TargetFrameworks": "netstandard2.0;net5.0"
+    },
+    "PackageReferences": {
+      " '$(TargetFrameworkIdentifier)' == '.NETStandard' ": {
+        "NuGet001": "13.0.1"
+      },
+      "": {
+        "NuGet002": "2.10.0"
+      }
+    }
+  },
+  {
+    "ProjectName": "Baz.csproj",
+    "Properties": {
+      "TargetFrameworks": "netstandard2.0"
+    }
+  }
+]

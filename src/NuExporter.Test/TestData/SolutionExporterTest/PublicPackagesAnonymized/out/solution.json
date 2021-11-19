@@ -1,0 +1,32 @@
+[
+  {
+    "ProjectName": "Project1.csproj",
+    "Properties": {
+      "TargetFramework": "net5.0"
+    },
+    "ProjectReferences": {
+      "": [
+        "Project2.csproj"
+      ]
+    },
+    "PackageReferences": {
+      "": {
+        "Newtonsoft.Json": null
+      }
+    }
+  },
+  {
+    "ProjectName": "Project2.csproj",
+    "Properties": {
+      "TargetFrameworks": "netstandard2.0;net5.0"
+    },
+    "PackageReferences": {
+      " '$(TargetFrameworkIdentifier)' == '.NETStandard' ": {
+        "Newtonsoft.Json": "13.0.1"
+      },
+      "": {
+        "Serilog": "2.10.0"
+      }
+    }
+  }
+]

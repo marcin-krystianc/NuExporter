@@ -1,0 +1,33 @@
+[
+  {
+    "ProjectName": "Project1.csproj",
+    "Properties": {
+      "TargetFramework": "net5.0",
+      "ManagePackageVersionsCentrally": "true"
+    },
+    "ProjectReferences": {
+      "": [
+        "Project2.csproj"
+      ]
+    },
+    "PackageReferences": {
+      "": {
+        "Package1": "13.0.1"
+      }
+    }
+  },
+  {
+    "ProjectName": "Project2.csproj",
+    "Properties": {
+      "TargetFrameworks": "netstandard2.0;net5.0"
+    },
+    "PackageReferences": {
+      " '$(TargetFrameworkIdentifier)' == '.NETStandard' ": {
+        "Package1": "13.0.1"
+      },
+      "": {
+        "Package3": "2.10.0"
+      }
+    }
+  }
+]

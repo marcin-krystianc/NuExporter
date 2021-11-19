@@ -1,0 +1,31 @@
+[
+  {
+    "ProjectName": "NuGet001_13.0.1.csproj",
+    "Properties": {
+      "AssemblyName": "NuGet001",
+      "Version": "13.0.1",
+      "TargetFrameworks": "netstandard2.0"
+    },
+    "ProjectReferences": {
+      " '$(TargetFramework)' == 'netstandard2.0' ": [
+        "NuGet003_2.0.0.csproj"
+      ]
+    }
+  },
+  {
+    "ProjectName": "NuGet002_2.10.0.csproj",
+    "Properties": {
+      "AssemblyName": "NuGet002",
+      "Version": "2.10.0",
+      "TargetFrameworks": "netstandard1.0"
+    }
+  },
+  {
+    "ProjectName": "NuGet003_2.0.0.csproj",
+    "Properties": {
+      "AssemblyName": "NuGet003",
+      "Version": "2.0.0",
+      "TargetFrameworks": "netstandard1.0"
+    }
+  }
+]

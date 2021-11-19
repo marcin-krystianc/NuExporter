@@ -1,0 +1,24 @@
+[
+  {
+    "ProjectName": "Project1.csproj",
+    "Properties": {
+      "TargetFramework": "net5.0"
+    },
+    "ProjectReferences": {
+      "": [
+        "Project2.csproj"
+      ]
+    }
+  },
+  {
+    "ProjectName": "Project2.csproj",
+    "Properties": {
+      "TargetFrameworks": "net5.0"
+    },
+    "PackageReferences": {
+      "": {
+        "Package1": "4.3.1"
+      }
+    }
+  }
+]
