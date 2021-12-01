@@ -76,10 +76,25 @@ public class SolutionExporter
 
         if (packageDtos.Any())
         {
-            var path = Path.Combine(outputPath, "packages.json");
-            Log.Information("Writing {Path}", path);
+            var pathPath = Path.Combine(outputPath, "packages.json");
+            var globalPackagesPath = Path.Combine(outputPath, "global-packages");
+            var artifactsPath = Path.Combine(outputPath, "artifacts");
+            var configPath = Path.Combine(outputPath, "nuget.config");
+            Log.Information("Writing {Path}", pathPath);
 
-            await File.WriteAllTextAsync(path, JsonConvert.SerializeObject(packageDtos, _serializerSettings));
+            await File.WriteAllTextAsync(pathPath, JsonConvert.SerializeObject(packageDtos, _serializerSettings));
+
+            if (Directory.Exists(globalPackagesPath))
+                Directory.Delete(globalPackagesPath, true);
+
+            Directory.CreateDirectory(globalPackagesPath);
+
+            if (Directory.Exists(artifactsPath))
+                Directory.Delete(artifactsPath, true);
+
+            Directory.CreateDirectory(artifactsPath);
+
+            await File.WriteAllTextAsync(configPath, Resources.GetResource("nugetconfig"));
         }
 
         if (mapping.Any())
@@ -97,7 +112,7 @@ public class SolutionExporter
 
         foreach (var project in projects)
         {
-            if (project.FullPath.Contains(".fsproj"))
+            if (project.FullPath.Contains("OrchardCore.Lucene.Abstractions.csproj"))
             {
             }
 
@@ -277,10 +292,7 @@ public class SolutionExporter
                     }
                 }
 
-                if (packageReferences.Any())
-                {
-                    packageReferencesDictionary.Add(condition, packageReferences);
-                }
+                packageReferencesDictionary.Add(condition, packageReferences);
             }
 
             if (packageIdentity.Version == null)
@@ -298,7 +310,7 @@ public class SolutionExporter
                     {Projects.TargetFrameworks, "netstandard2.0"},
                     {Projects.NoBuild, "true"},
                     {Projects.IncludeBuildOutput, "false"},
-                    {Projects.PackageOutputPath, "../artifacts"},
+                    {Projects.PackageOutputPath, "../../artifacts"},
                 },
             };
 

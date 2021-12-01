@@ -18,5 +18,6 @@
     <ItemGroup>
       <EmbeddedResource Include="EmbeddedResources\csharpmodule.txt" LogicalName="csharp" />
       <EmbeddedResource Include="EmbeddedResources\fsharpmodule.txt" LogicalName="fsharp" />
+      <EmbeddedResource Include="EmbeddedResources\nuget.config" LogicalName="nugetconfig" />
     </ItemGroup>
 </Project>

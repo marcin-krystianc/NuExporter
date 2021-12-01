@@ -8,7 +8,7 @@
       "TargetFrameworks": "netstandard2.0",
       "NoBuild": "true",
       "IncludeBuildOutput": "false",
-      "PackageOutputPath": "../artifacts"
+      "PackageOutputPath": "../../artifacts"
     }
   },
   {
@@ -20,7 +20,7 @@
       "TargetFrameworks": "netstandard2.0",
       "NoBuild": "true",
       "IncludeBuildOutput": "false",
-      "PackageOutputPath": "../artifacts"
+      "PackageOutputPath": "../../artifacts"
     }
   },
   {
@@ -32,7 +32,7 @@
       "TargetFrameworks": "netstandard2.0",
       "NoBuild": "true",
       "IncludeBuildOutput": "false",
-      "PackageOutputPath": "../artifacts"
+      "PackageOutputPath": "../../artifacts"
     }
   }
 ]

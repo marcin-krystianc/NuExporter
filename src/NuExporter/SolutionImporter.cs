@@ -145,7 +145,7 @@ public class SolutionImporter
 
             if (".fsproj".Equals(Path.GetExtension(projectDto.ProjectName), StringComparison.OrdinalIgnoreCase))
             {
-                var code = GetResource("fsharp")
+                var code = Resources.GetResource("fsharp")
                     .Replace("<namespace>", defaultNamespace);
 
                 File.WriteAllText(Path.Combine(projectDirectory, "MyModule.fs"), code);
@@ -153,7 +153,7 @@ public class SolutionImporter
             }
             else
             {
-                var code = GetResource("csharp")
+                var code = Resources.GetResource("csharp")
                     .Replace("<namespace>", defaultNamespace);
 
                 File.WriteAllText(Path.Combine(projectDirectory, "MyModule.cs"), code);
@@ -241,13 +241,5 @@ public class SolutionImporter
 
         project.Save(projectPath);
         return projectPath;
-    }
-
-    private static string GetResource(string resourceName)
-    {
-        var assembly = Assembly.GetExecutingAssembly();
-        using Stream stream = assembly.GetManifestResourceStream(resourceName);
-        using StreamReader reader = new StreamReader(stream);
-        return reader.ReadToEnd();
     }
 }
