@@ -3,46 +3,58 @@
     "ProjectName": "Package1_4.3.1.csproj",
     "Properties": {
       "AssemblyName": "Package1",
+      "NuspecFile": "Package1.nuspec",
       "Version": "4.3.1",
-      "TargetFrameworks": "monoandroid10;monotouch10;net45;net462;netcore50;netstandard1.0;netstandard1.2;netstandard1.3;netstandard1.5;portable-net45+win8+wp8+wpa81;win8;wp8;wpa81;xamarinios10;xamarinmac20;xamarintvos10;xamarinwatchos10"
+      "TargetFrameworks": "netstandard2.0",
+      "NoBuild": "true",
+      "IncludeBuildOutput": "false",
+      "PackageOutputPath": "../artifacts"
     },
-    "ProjectReferences": {
-      " '$(TargetFramework)' == 'netcore50' ": [
-        "Package2_1.1.1.csproj",
-        "Package3_1.1.3.csproj"
-      ],
-      " '$(TargetFramework)' == 'netstandard1.0' ": [
-        "Package2_1.1.1.csproj",
-        "Package3_1.1.3.csproj"
-      ],
-      " '$(TargetFramework)' == 'netstandard1.2' ": [
-        "Package2_1.1.1.csproj",
-        "Package3_1.1.3.csproj"
-      ],
-      " '$(TargetFramework)' == 'netstandard1.3' ": [
-        "Package2_1.1.1.csproj",
-        "Package3_1.1.3.csproj"
-      ],
-      " '$(TargetFramework)' == 'netstandard1.5' ": [
-        "Package2_1.1.1.csproj",
-        "Package3_1.1.3.csproj"
-      ]
+    "PackageReferences": {
+      ".NETCore5.0": {
+        "Package2": "1.1.1",
+        "Package3": "1.1.3"
+      },
+      ".NETStandard1.0": {
+        "Package2": "1.1.1",
+        "Package3": "1.1.3"
+      },
+      ".NETStandard1.2": {
+        "Package2": "1.1.1",
+        "Package3": "1.1.3"
+      },
+      ".NETStandard1.3": {
+        "Package2": "1.1.1",
+        "Package3": "1.1.3"
+      },
+      ".NETStandard1.5": {
+        "Package2": "1.1.1",
+        "Package3": "1.1.3"
+      }
     }
   },
   {
     "ProjectName": "Package2_1.1.1.csproj",
     "Properties": {
       "AssemblyName": "Package2",
+      "NuspecFile": "Package2.nuspec",
       "Version": "1.1.1",
-      "TargetFrameworks": "netstandard1.0"
+      "TargetFrameworks": "netstandard2.0",
+      "NoBuild": "true",
+      "IncludeBuildOutput": "false",
+      "PackageOutputPath": "../artifacts"
     }
   },
   {
     "ProjectName": "Package3_1.1.3.csproj",
     "Properties": {
       "AssemblyName": "Package3",
+      "NuspecFile": "Package3.nuspec",
       "Version": "1.1.3",
-      "TargetFrameworks": "netstandard1.0"
+      "TargetFrameworks": "netstandard2.0",
+      "NoBuild": "true",
+      "IncludeBuildOutput": "false",
+      "PackageOutputPath": "../artifacts"
     }
   }
 ]

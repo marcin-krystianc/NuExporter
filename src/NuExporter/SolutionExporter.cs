@@ -14,6 +14,7 @@ using NuGet.Versioning;
 using Serilog;
 using NuExporter.Dto;
 using NuExporter.NuGet;
+using NuGet.Packaging;
 
 namespace NuExporter;
 
@@ -25,15 +26,17 @@ public class SolutionExporter
     private readonly Dictionary<string, string> _propertiesToExport = new(StringComparer.OrdinalIgnoreCase)
         {
             {Projects.ManagePackageVersionsCentrally, "false"},
-            {"TargetFramework", ""},
-            {"TargetFrameworks", ""},
+            {Projects.TargetFramework, ""},
+            {Projects.TargetFrameworks, ""},
+            {Projects.DisableImplicitFSharpCoreReference, "false"},
+            {Projects.DisableImplicitSystemValueTupleReference, "false"},
         };
 
     private readonly ConcurrentDictionary<string, Lazy<Task<bool>>> _packagePublicPrivateDictionary =
-        new(StringComparer.CurrentCultureIgnoreCase);
+        new(StringComparer.OrdinalIgnoreCase);
 
     private readonly Dictionary<string, string> _packageMappingDictionary =
-        new(StringComparer.CurrentCultureIgnoreCase);
+        new(StringComparer.OrdinalIgnoreCase);
 
     private readonly JsonSerializerSettings _serializerSettings = new()
     {
@@ -61,8 +64,8 @@ public class SolutionExporter
 
         Directory.CreateDirectory(outputPath);
 
-        var projects = LoadProjects(projectsToProcess.Select(x => x.AbsolutePath));
-        var (projectDtos, packageDtos) = await GetProjectsToExport(anonymize, projects);
+        var projects = LoadProjects(projectsToProcess.Select(x => x.AbsolutePath).ToList());
+        var (projectDtos, packageDtos, mapping) = await GetProjectsToExport(anonymize, projects);
         if (projectDtos.Any())
         {
             var path = Path.Combine(outputPath, "solution.json");
@@ -78,28 +81,40 @@ public class SolutionExporter
 
             await File.WriteAllTextAsync(path, JsonConvert.SerializeObject(packageDtos, _serializerSettings));
         }
+
+        if (mapping.Any())
+        {
+            var path = Path.Combine(outputPath, "mapping.txt");
+            Log.Information("Writing {Path}", path);
+
+            await File.WriteAllTextAsync(path, string.Join(Environment.NewLine, mapping.Select(x => $"{x.Item1}:{x.Item2}")));
+        }
     }
 
-    private async Task<(List<ProjectDto>, List<ProjectDto>)> GetProjectsToExport(bool anonymize, IEnumerable<Project> projects)
+    private async Task<(List<ProjectDto>, List<ProjectDto>, List<(string, string)>)> GetProjectsToExport(bool anonymize, IEnumerable<Project> projects)
     {
         var dtos = new List<ProjectDto>();
 
         foreach (var project in projects)
         {
+            if (project.FullPath.Contains(".fsproj"))
+            {
+            }
+
             Dictionary<string, string> packageVersions = null;
 
             if (project.IsCentralPackageVersionManagementEnabled())
             {
-                packageVersions = project.GetItems("PackageVersion")
-                    .ToDictionary(x => x.EvaluatedInclude, x => x.Metadata("Version").EvaluatedValue,
+                packageVersions = project.GetItems(Projects.PackageVersion)
+                    .ToDictionary(x => x.EvaluatedInclude, x => x.Metadata(Projects.Version).EvaluatedValue,
                         StringComparer.OrdinalIgnoreCase);
             }
 
-            var projectReferences = project.GetItemsIgnoringCondition("ProjectReference")
+            var projectReferences = project.GetItemsIgnoringCondition(Projects.ProjectReference)
                 .Where(x => !x.IsImplicitlyDefined())
                 .ToLookup(x => x.Xml.Condition ?? string.Empty);
 
-            var packageReferences = project.GetItemsIgnoringCondition("PackageReference")
+            var packageReferences = project.GetItemsIgnoringCondition(Projects.PackageReference)
                 .Where(x => !x.IsImplicitlyDefined())
                 .ToLookup(x => x.Xml.Condition ?? string.Empty);
 
@@ -112,19 +127,19 @@ public class SolutionExporter
             var projectDto = new ProjectDto
             {
                 ProjectName = Path.GetFileName(project.FullPath),
-                Sdk = "Microsoft.NET.Sdk".Equals(project.Xml.Sdk, StringComparison.OrdinalIgnoreCase)
+                Sdk = Projects.MicrosoftNETSdk.Equals(project.Xml.Sdk, StringComparison.OrdinalIgnoreCase)
                     ? null
                     : project.Xml.Sdk ?? string.Empty,
 
                 ProjectReferences = projectReferences.Any()
                     ? projectReferences.ToDictionary(x => x.Key,
-                        x => x.Select(x => Path.GetFileName(x.EvaluatedInclude)).ToList())
+                        x => x.Select(projectItem => Path.GetFileName(projectItem.EvaluatedInclude)).ToList())
                     : null,
 
                 PackageReferences = packageReferences.Any()
                     ? packageReferences.ToDictionary(x => x.Key,
-                        x => x.ToDictionary(y => y.EvaluatedInclude,
-                            y => y.VersionString() ?? packageVersions?.GetValueOrDefault(y.EvaluatedInclude)))
+                        x => x.DistinctBy(x => x.EvaluatedInclude, StringComparer.OrdinalIgnoreCase)
+                            .ToDictionary(y => y.EvaluatedInclude, y => y.VersionString() ?? packageVersions?.GetValueOrDefault(y.EvaluatedInclude), StringComparer.OrdinalIgnoreCase))
                     : null,
 
                 Properties = properties.Any()
@@ -147,9 +162,11 @@ public class SolutionExporter
             .Select(x => x.ProjectName)
             .ToList();
 
+        Dictionary<string, string> projectMapping = null;
+        var mapping = new List<(string, string)>();
         if (anonymize)
         {
-            var projectMapping = allReferencedProjects
+            projectMapping = allReferencedProjects
                 .Concat(allProjectNames)
                 .Distinct(StringComparer.OrdinalIgnoreCase)
                 .OrderBy(x => x)
@@ -179,9 +196,16 @@ public class SolutionExporter
                     dto.PackageReferences = packageReferences;
                 }
             }
+
+            mapping.AddRange(projectMapping.Select(x => (x.Key, x.Value)));
         }
 
-        return (dtos, packageDtos);
+        lock (_packageMappingDictionary)
+        {
+            mapping.AddRange(_packageMappingDictionary.Select(x => (x.Key, x.Value)));
+        }
+
+        return (dtos, packageDtos, mapping);
     }
 
     private async Task<List<ProjectDto>> GetPackagesToExport(bool anonymize, IEnumerable<ProjectDto> dtos)
@@ -198,17 +222,21 @@ public class SolutionExporter
             .ToList();
 
         // precompute package privacy
-        await Parallel.ForEachAsync(packageIds, async (x, ct) => await IsPublicPackageAsync(x));
+        await Parallel.ForEachAsync(packageIds, async (x, _) => await IsPublicPackageAsync(x));
 
         var exportedPackages = new HashSet<PackageIdentity>();
         var packagesToExport = new Queue<PackageIdentity>();
 
-        foreach (var (id, version) in allReferencedPackages.Where(x => !string.IsNullOrWhiteSpace(x.Value)))
+        foreach (var (id, version) in allReferencedPackages)
         {
-            if (await IsPublicPackageAsync(id))
+            if (await IsPublicPackageAsync(id) || string.IsNullOrWhiteSpace(version))
                 continue;
 
-            var packageIdentity = new PackageIdentity(id, NuGetVersion.Parse(version));
+            var versionRange = VersionRange.Parse(version);
+            if (!versionRange.HasLowerBound || !versionRange.IsMinInclusive)
+                continue;
+
+            var packageIdentity = new PackageIdentity(id, versionRange.MinVersion);
             packagesToExport.Enqueue(packageIdentity);
         }
 
@@ -222,38 +250,30 @@ public class SolutionExporter
             var dependencyInfo = await _packageDependencyInfoProvider.GetDependencyInfoAsync(packageIdentity);
             if (dependencyInfo == null)
             {
-                Log.Warning("Cannot find {Package} in any nuget source", packageIdentity.Id);
+                Log.Warning("Cannot find {Package} in any nuget source", packageIdentity);
                 continue;
             }
 
             var mappedId = await MapPackageNameAsync(anonymize, packageIdentity.Id);
             var packageReferencesDictionary = new Dictionary<string, Dictionary<string, string>>();
-            var projectReferencesDictionary = new Dictionary<string, List<string>>();
 
             foreach (var dependencyGroup in dependencyInfo.DependencyGroups)
             {
                 var packageReferences = new Dictionary<string, string>();
-                var projectReferences = new List<string>();
-                var targetFramework = dependencyGroup.TargetFramework.GetShortFolderName();
-                var condition = $" '$(TargetFramework)' == '{targetFramework}' ";
+                var condition = dependencyGroup.TargetFramework.GetFrameworkString();
 
                 foreach (var packageDependency in dependencyGroup.Packages)
                 {
+                    var mappedDependencyId = await MapPackageNameAsync(anonymize, packageDependency.Id);
+                    packageReferences.Add(mappedDependencyId, packageDependency.VersionRange.ToShortString());
+
                     if (!await IsPublicPackageAsync(packageDependency.Id))
                     {
-                        if (packageDependency.VersionRange.HasLowerBound)
-                        {
-                            packagesToExport.Enqueue(new PackageIdentity(packageDependency.Id,
-                                packageDependency.VersionRange.MinVersion));
+                        if (!packageDependency.VersionRange.HasLowerBound || !packageDependency.VersionRange.IsMinInclusive)
+                            continue;
 
-                            var mappedDependencyId = await MapPackageNameAsync(anonymize, packageDependency.Id);
-                            projectReferences.Add($"{mappedDependencyId}_{packageDependency.VersionRange.MinVersion}.csproj");
-                        }
-                    }
-                    else
-                    {
-                        var mappedDependencyId = await MapPackageNameAsync(anonymize, packageDependency.Id);
-                        packageReferences.Add(mappedDependencyId, packageDependency.VersionRange.ToShortString());
+                        packagesToExport.Enqueue(new PackageIdentity(packageDependency.Id,
+                            packageDependency.VersionRange.MinVersion));
                     }
                 }
 
@@ -261,28 +281,24 @@ public class SolutionExporter
                 {
                     packageReferencesDictionary.Add(condition, packageReferences);
                 }
-
-                if (projectReferences.Any())
-                {
-                    projectReferencesDictionary.Add(condition, projectReferences);
-                }
             }
+
+            if (packageIdentity.Version == null)
+                continue;
 
             var dto = new ProjectDto
             {
                 ProjectName = $"{mappedId}_{packageIdentity.Version}.csproj",
                 PackageReferences = packageReferencesDictionary.Any() ? packageReferencesDictionary : null,
-                ProjectReferences = projectReferencesDictionary.Any() ? projectReferencesDictionary : null,
                 Properties = new Dictionary<string, string>
                 {
-                    {"AssemblyName", mappedId},
-                    {"Version", packageIdentity.Version.ToString()},
-                    {
-                        "TargetFrameworks", dependencyInfo.DependencyGroups.Any()
-                            ? string.Join(";",
-                                dependencyInfo.DependencyGroups.Select(x => x.TargetFramework.GetShortFolderName()))
-                            : "netstandard1.0"
-                    },
+                    {Projects.AssemblyName, mappedId},
+                    {Projects.NuspecFile, $"{mappedId}.nuspec"},
+                    {Projects.Version, packageIdentity.Version.ToString()},
+                    {Projects.TargetFrameworks, "netstandard2.0"},
+                    {Projects.NoBuild, "true"},
+                    {Projects.IncludeBuildOutput, "false"},
+                    {Projects.PackageOutputPath, "../artifacts"},
                 },
             };
 
@@ -292,7 +308,7 @@ public class SolutionExporter
         return packageDtos;
     }
 
-    private IReadOnlyList<Project> LoadProjects(IEnumerable<string> paths)
+    private IReadOnlyList<Project> LoadProjects(IReadOnlyList<string> paths)
     {
         using (var projectCollection = new ProjectCollection())
         {

@@ -82,4 +82,59 @@ public class SolutionExporterTest : BaseFixture
             outputPath: TestDataOutput
         );
     }
+
+    [Test]
+    public async Task VersionRangesPublic()
+    {
+        var uut = new SolutionExporter(_allPublicPackagesProvider, _packageDependencyInfoProvider);
+        await uut.ProcessAsync(
+            anonymize: false,
+            solutionFilePath: Path.Combine(TestDataInput, "Solution.sln"),
+            outputPath: TestDataOutput
+        );
+    }
+
+    [Test]
+    public async Task VersionRangesPrivate()
+    {
+        var uut = new SolutionExporter(_allPrivatePackagesProvider, _packageDependencyInfoProvider);
+        await uut.ProcessAsync(
+            anonymize: false,
+            solutionFilePath: Path.Combine(TestDataInput, "Solution.sln"),
+            outputPath: TestDataOutput
+        );
+    }
+
+    [Test]
+    public async Task DuplicatePackageReferences()
+    {
+        var uut = new SolutionExporter(_allPublicPackagesProvider, _packageDependencyInfoProvider);
+        await uut.ProcessAsync(
+            anonymize: false,
+            solutionFilePath: Path.Combine(TestDataInput, "Solution.sln"),
+            outputPath: TestDataOutput
+        );
+    }
+
+    [Test]
+    public async Task UpdatedPackageReferences()
+    {
+        var uut = new SolutionExporter(_allPublicPackagesProvider, _packageDependencyInfoProvider);
+        await uut.ProcessAsync(
+            anonymize: false,
+            solutionFilePath: Path.Combine(TestDataInput, "Solution.sln"),
+            outputPath: TestDataOutput
+        );
+    }
+
+    [Test]
+    public async Task FsharpProject()
+    {
+        var uut = new SolutionExporter(_allPublicPackagesProvider, _packageDependencyInfoProvider);
+        await uut.ProcessAsync(
+            anonymize: false,
+            solutionFilePath: Path.Combine(TestDataInput, "Solution.sln"),
+            outputPath: TestDataOutput
+        );
+    }
 }

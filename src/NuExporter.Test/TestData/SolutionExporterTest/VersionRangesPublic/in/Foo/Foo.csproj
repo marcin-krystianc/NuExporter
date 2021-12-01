@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net5.0</TargetFrameworks>
+  </PropertyGroup>
+
+ <ItemGroup>
+   <PackageReference Include="NuGet001" Version="1.0.0" />
+   <PackageReference Include="NuGet002" Version="[2.0.0]" />
+   <PackageReference Include="NuGet003" Version="[2.0.0, 3.0.0)" />
+   <PackageReference Include="NuGet004" Version="(2.0.0, 3.0.0)" />
+   <PackageReference Include="NuGet005" />
+ </ItemGroup>
+
+</Project>

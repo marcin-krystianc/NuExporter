@@ -12,6 +12,7 @@
         <PackageReference Include="QuikGraph" Version="2.3.0" />
         <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
         <PackageReference Include="NuGet.Protocol" Version="6.0.0" />
+        <PackageReference Include="NuGet.Packaging" Version="6.0.0" />
         <PackageReference Include="NuGet.Configuration" Version="6.0.0" />
     </ItemGroup>
     <ItemGroup>

@@ -1,0 +1,2 @@
+﻿Bar.csproj:Project1.csproj
+Foo.csproj:Project2.csproj

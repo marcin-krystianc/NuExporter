@@ -1,0 +1,5 @@
+﻿Bar.csproj:Project1.csproj
+Foo.csproj:Project2.csproj
+System.Runtime:Package1
+Microsoft.NETCore.Platforms:Package2
+Microsoft.NETCore.Targets:Package3

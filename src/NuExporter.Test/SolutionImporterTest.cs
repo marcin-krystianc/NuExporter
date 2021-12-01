@@ -1,7 +1,6 @@
 ﻿using System.IO;
 using System.Threading.Tasks;
 using NUnit.Framework;
-using NUnit.Framework.Constraints;
 
 namespace NuExporter.Test;
 

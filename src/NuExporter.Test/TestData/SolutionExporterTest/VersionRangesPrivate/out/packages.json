@@ -1,27 +1,10 @@
-[
+﻿[
   {
-    "ProjectName": "Package1_13.0.1.csproj",
+    "ProjectName": "NuGet001_1.0.0.csproj",
     "Properties": {
-      "AssemblyName": "Package1",
-      "NuspecFile": "Package1.nuspec",
-      "Version": "13.0.1",
-      "TargetFrameworks": "netstandard2.0",
-      "NoBuild": "true",
-      "IncludeBuildOutput": "false",
-      "PackageOutputPath": "../artifacts"
-    },
-    "PackageReferences": {
-      ".NETStandard2.0": {
-        "Package2": "2.0.0"
-      }
-    }
-  },
-  {
-    "ProjectName": "Package3_2.10.0.csproj",
-    "Properties": {
-      "AssemblyName": "Package3",
-      "NuspecFile": "Package3.nuspec",
-      "Version": "2.10.0",
+      "AssemblyName": "NuGet001",
+      "NuspecFile": "NuGet001.nuspec",
+      "Version": "1.0.0",
       "TargetFrameworks": "netstandard2.0",
       "NoBuild": "true",
       "IncludeBuildOutput": "false",
@@ -29,10 +12,22 @@
     }
   },
   {
-    "ProjectName": "Package2_2.0.0.csproj",
+    "ProjectName": "NuGet002_2.0.0.csproj",
     "Properties": {
-      "AssemblyName": "Package2",
-      "NuspecFile": "Package2.nuspec",
+      "AssemblyName": "NuGet002",
+      "NuspecFile": "NuGet002.nuspec",
+      "Version": "2.0.0",
+      "TargetFrameworks": "netstandard2.0",
+      "NoBuild": "true",
+      "IncludeBuildOutput": "false",
+      "PackageOutputPath": "../artifacts"
+    }
+  },
+  {
+    "ProjectName": "NuGet003_2.0.0.csproj",
+    "Properties": {
+      "AssemblyName": "NuGet003",
+      "NuspecFile": "NuGet003.nuspec",
       "Version": "2.0.0",
       "TargetFrameworks": "netstandard2.0",
       "NoBuild": "true",

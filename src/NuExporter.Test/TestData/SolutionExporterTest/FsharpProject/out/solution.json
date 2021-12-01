@@ -1,0 +1,8 @@
+[
+  {
+    "ProjectName": "Foo.fsproj",
+    "Properties": {
+      "TargetFrameworks": "net5.0"
+    }
+  }
+]

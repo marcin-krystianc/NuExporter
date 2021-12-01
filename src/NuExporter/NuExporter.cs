@@ -16,7 +16,7 @@ public class NuExporter
             );
 
             await solutionExporter.ProcessAsync(
-                anonymize: options.Anonymize,
+                anonymize: options.Anonymize!.Value,
                 solutionFilePath: options.SolutionFile,
                 outputPath: options.OutputPath
             );

@@ -1,13 +1,9 @@
 ﻿using System;
-using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using CommandLine;
-using Microsoft.Build.Construction;
 using Microsoft.Build.Locator;
 using Serilog;
 using Serilog.Sinks.SystemConsole.Themes;
-using NuExporter.NuGet;
 
 namespace NuExporter;
 

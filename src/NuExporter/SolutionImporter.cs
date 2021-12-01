@@ -4,12 +4,14 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using System.Xml;
 using Microsoft.Build.Construction;
 using Newtonsoft.Json;
 using NuGet.Versioning;
 using Serilog;
 using NuExporter.Dto;
+using NuGet.Frameworks;
+using NuGet.Packaging;
+using NuGet.Packaging.Core;
 
 namespace NuExporter;
 
@@ -35,32 +37,60 @@ public class SolutionImporter
         Log.Information("Creating '{SolutionPath}'", solutionPath);
         await processRunner.RunAsync("dotnet", "new", "sln", "-n", solutionName);
 
+        var projectPaths = new Queue<string>();
         foreach (var dto in dtos)
         {
             var projectPath = await Task.Run(() => WriteProject(workingDirectory, dto));
-            await processRunner.RunAsync("dotnet", "sln", "add", projectPath);
+            projectPaths.Enqueue(projectPath);
+        }
+
+        // What is the command line length limit?
+        var cmdLengthLimit = 32000; // https://devblogs.microsoft.com/oldnewthing/20031210-00/?p=41553
+        var batch = new List<string>();
+        var leftCharacters = cmdLengthLimit;
+        while (projectPaths.Any() || batch.Any())
+        {
+            if (projectPaths.Any())
+            {
+                var projectPath = Path.GetRelativePath(workingDirectory, projectPaths.Dequeue());
+                if (!batch.Any() || leftCharacters > projectPath.Length)
+                {
+                    batch.Add(projectPath);
+                    leftCharacters -= projectPath.Length;
+                    continue;
+                }
+            }
+
+            if (batch.Any())
+            {
+                await processRunner.RunAsync("dotnet", new[] {"sln", "add"}.Concat(batch).ToArray());
+                batch.Clear();
+                leftCharacters = cmdLengthLimit;
+            }
         }
     }
 
     private string WriteProject(string directory, ProjectDto projectDto)
     {
         var projectDirectory = Path.Combine(directory, Path.GetFileNameWithoutExtension(projectDto.ProjectName));
-        var defaultNamespace = Path.GetFileNameWithoutExtension(projectDto.ProjectName);
-        var projectPath = Path.Combine(projectDirectory, projectDto.ProjectName);
-        if (Directory.Exists(projectDirectory))
-            Directory.Delete(projectDirectory, true);
+        var defaultNamespace = Path.GetFileNameWithoutExtension(projectDto.ProjectName)
+            .Replace(".", "_");
 
+        var projectPath = Path.Combine(projectDirectory, projectDto.ProjectName);
         Directory.CreateDirectory(projectDirectory);
 
-        var isCpvmEnabled = "true".Equals(projectDto.Properties?.GetValueOrDefault(Projects.ManagePackageVersionsCentrally),
+        var isCpvmEnabled = "true".Equals(
+            projectDto.Properties?.GetValueOrDefault(Projects.ManagePackageVersionsCentrally),
             StringComparison.OrdinalIgnoreCase);
 
-        // Avoids mess (unnecessary xml version and namespace) from ProjectRootElement.Create
-        File.WriteAllText(projectPath, @"<Project/>");
+        Projects.CreateEmptyProject(projectPath);
         var project = ProjectRootElement.Open(projectPath);
 
-        project.Sdk = projectDto.Sdk ?? "Microsoft.NET.Sdk";
+        project.Sdk = projectDto.Sdk ?? Projects.MicrosoftNETSdk;
         project.ToolsVersion = null;
+
+        string nuspecFile = null;
+        projectDto.Properties?.TryGetValue(Projects.NuspecFile, out nuspecFile);
 
         if (projectDto.Properties != null)
         {
@@ -70,96 +100,146 @@ public class SolutionImporter
             }
         }
 
-        if (projectDto.ProjectReferences != null)
+        if (nuspecFile == null)
         {
-            foreach (var (condition, projectReferences) in projectDto.ProjectReferences)
+            if (projectDto.ProjectReferences != null)
             {
-                var itemGroup = project.AddItemGroup();
-                if (!string.IsNullOrWhiteSpace(condition))
-                    itemGroup.Condition = condition;
-
-                foreach (var projectReference in projectReferences)
+                foreach (var (condition, projectReferences) in projectDto.ProjectReferences)
                 {
-                    itemGroup.AddItem("ProjectReference", $@"..\{Path.GetFileNameWithoutExtension(projectReference)}\{projectReference}");
+                    var itemGroup = project.AddItemGroup();
+                    if (!string.IsNullOrWhiteSpace(condition))
+                        itemGroup.Condition = condition;
+
+                    foreach (var projectReference in projectReferences)
+                    {
+                        itemGroup.AddItem(Projects.ProjectReference,
+                            $@"..\{Path.GetFileNameWithoutExtension(projectReference)}\{projectReference}");
+                    }
                 }
             }
-        }
 
-        var packageVersionsToExport = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            var packageVersionsToExport = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
-        if (projectDto.PackageReferences != null)
-        {
-            foreach (var (condition, packageReference) in projectDto.PackageReferences)
+            if (projectDto.PackageReferences != null)
             {
-                var itemGroup = project.AddItemGroup();
-                if (!string.IsNullOrWhiteSpace(condition))
-                    itemGroup.Condition = condition;
-
-                foreach (var (id, version) in packageReference)
+                foreach (var (condition, packageReference) in projectDto.PackageReferences)
                 {
-                    var item = itemGroup.AddItem("PackageReference", $"{id}");
-                    if (isCpvmEnabled)
+                    var itemGroup = project.AddItemGroup();
+                    if (!string.IsNullOrWhiteSpace(condition))
+                        itemGroup.Condition = condition;
+
+                    foreach (var (id, version) in packageReference)
                     {
-                        packageVersionsToExport[id] = version;
+                        var item = itemGroup.AddItem(Projects.PackageReference, $"{id}");
+                        if (isCpvmEnabled)
+                        {
+                            packageVersionsToExport[id] = version;
+                        }
+                        else
+                        {
+                            item.AddMetadata(Projects.Version, version ?? string.Empty, true);
+                        }
+                    }
+                }
+            }
+
+            if (".fsproj".Equals(Path.GetExtension(projectDto.ProjectName), StringComparison.OrdinalIgnoreCase))
+            {
+                var code = GetResource("fsharp")
+                    .Replace("<namespace>", defaultNamespace);
+
+                File.WriteAllText(Path.Combine(projectDirectory, "MyModule.fs"), code);
+                project.AddItem("Compile", "MyModule.fs");
+            }
+            else
+            {
+                var code = GetResource("csharp")
+                    .Replace("<namespace>", defaultNamespace);
+
+                File.WriteAllText(Path.Combine(projectDirectory, "MyModule.cs"), code);
+            }
+
+            if (isCpvmEnabled)
+            {
+                var packagesPath = Path.GetFullPath(Path.Combine(projectDirectory, "..", "Directory.Packages.props"));
+                if (!File.Exists(packagesPath))
+                    Projects.CreateEmptyProject(packagesPath);
+
+                var packages = ProjectRootElement.Open(packagesPath);
+                var existingVersions = packages.Items
+                    .Where(x => x.ItemType == Projects.PackageVersion)
+                    .ToDictionary(x => x.Include,
+                        x => x.Metadata.Single(x => Projects.Version.Equals(x.Name, StringComparison.OrdinalIgnoreCase))
+                            .Value,
+                        StringComparer.OrdinalIgnoreCase);
+
+                foreach (var packageVersionToExport in packageVersionsToExport)
+                {
+                    if (existingVersions.TryGetValue(packageVersionToExport.Key, out var existingVersion))
+                    {
+                        if (!VersionRange.Parse(existingVersion)
+                                .Equals(VersionRange.Parse(packageVersionToExport.Value)))
+                        {
+                            throw new Exception(
+                                $"Conflicting central versions for '{packageVersionToExport.Key}': {existingVersion} != {packageVersionToExport.Value}");
+                        }
                     }
                     else
                     {
-                        item.AddMetadata("Version", version ?? string.Empty, true);
+                        var item = packages.AddItem(Projects.PackageVersion, packageVersionToExport.Key);
+                        item.AddMetadata(Projects.Version, packageVersionToExport.Value, true);
                     }
                 }
+
+                packages.Save();
             }
-        }
-
-        if (".fsproj".Equals(Path.GetExtension(projectDto.ProjectName), StringComparison.OrdinalIgnoreCase))
-        {
-            var code = GetResource("fsharp")
-                .Replace("<namespace>", defaultNamespace);
-
-            File.WriteAllText(Path.Combine(projectDirectory, "MyModule.fs"), code);
-            project.AddItem("Compile", "MyModule.fs");
         }
         else
         {
-            var code = GetResource("csharp")
-                .Replace("<namespace>", defaultNamespace);
-
-            File.WriteAllText(Path.Combine(projectDirectory, "MyModule.cs"), code);
-        }
-
-        project.Save(projectPath);
-
-        if (isCpvmEnabled)
-        {
-            var packagesPath = Path.GetFullPath(Path.Combine(projectDirectory, "..", "Directory.Packages.props"));
-            if (!File.Exists(packagesPath))
-                File.WriteAllText(packagesPath, @"<Project/>");
-
-            var packages = ProjectRootElement.Open(packagesPath);
-            var existingVersions =  packages.Items
-                .Where(x => x.ItemType == "PackageVersion")
-                .ToDictionary(x => x.Include, x => x.Metadata.Single(x => "Version".Equals(x.Name, StringComparison.OrdinalIgnoreCase)).Value,
-                    StringComparer.OrdinalIgnoreCase);
-
-            foreach (var packageVersionToExport in packageVersionsToExport)
+            var packageDependencyGroups = new List<PackageDependencyGroup>();
+            if (projectDto.PackageReferences != null)
             {
-                if (existingVersions.TryGetValue(packageVersionToExport.Key, out var existingVersion))
+                foreach (var (framework, packageReferences) in projectDto.PackageReferences)
                 {
-                    if (!VersionRange.Parse(existingVersion).Equals(VersionRange.Parse(packageVersionToExport.Value)))
+                    var packageDependencies = new List<PackageDependency>();
+                    foreach (var (id, version) in packageReferences)
                     {
-                        throw new Exception(
-                            $"Conflicting central versions for '{packageVersionToExport.Key}': {existingVersion} != {packageVersionToExport.Value}");
+                        PackageDependency packageDependency;
+                        if (string.IsNullOrWhiteSpace(version))
+                        {
+                            packageDependency = new PackageDependency(id);
+                        }
+                        else
+                        {
+                            packageDependency = new PackageDependency(id, VersionRange.Parse(version));
+                        }
+
+                        packageDependencies.Add(packageDependency);
                     }
-                }
-                else
-                {
-                    var item = packages.AddItem("PackageVersion", packageVersionToExport.Key);
-                    item.AddMetadata("Version", packageVersionToExport.Value, true);
+
+                    packageDependencyGroups.Add(new PackageDependencyGroup(NuGetFramework.Parse(framework),
+                        packageDependencies));
                 }
             }
 
-            packages.Save();
+            var metadata = new ManifestMetadata
+            {
+                Id = projectDto.Properties[Projects.AssemblyName],
+                Version = NuGetVersion.Parse(projectDto.Properties[Projects.Version]),
+                Authors = new []{"NuExporter"},
+                Description = "Created with NuExporter",
+                DependencyGroups = packageDependencyGroups.Any()
+                    ? packageDependencyGroups
+                    : null,
+            };
+
+            var manifest = new Manifest(metadata);
+                var manifestPath = Path.Combine(projectDirectory, nuspecFile);
+                using var stream = File.OpenWrite(manifestPath);
+                manifest.Save(stream);
         }
 
+        project.Save(projectPath);
         return projectPath;
     }
 

@@ -1,0 +1,17 @@
+[
+  {
+    "ProjectName": "Foo.csproj",
+    "Properties": {
+      "TargetFrameworks": "net5.0"
+    },
+    "PackageReferences": {
+      "": {
+        "NuGet001": "1.0.0",
+        "NuGet002": "[2.0.0]",
+        "NuGet003": "[2.0.0, 3.0.0)",
+        "NuGet004": "(2.0.0, 3.0.0)",
+        "NuGet005": null
+      }
+    }
+  }
+]
