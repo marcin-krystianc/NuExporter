@@ -3,7 +3,16 @@
     <PropertyGroup>
         <OutputType>exe</OutputType>
         <TargetFramework>net6.0</TargetFramework>
+        <Version>0.1.0-alpha.20211201</Version>
+        <PackAsTool>true</PackAsTool>
+        <PackageOutputPath>../../dist</PackageOutputPath>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
     </PropertyGroup>
+
+    <ItemGroup>
+        <None Include="..\..\README.md" Pack="true" PackagePath="\"/>
+    </ItemGroup>
+
     <ItemGroup>
         <PackageReference Include="Microsoft.Build" Version="16.9.0" ExcludeAssets="runtime" />
         <PackageReference Include="CommandLineParser" Version="2.8.0" />

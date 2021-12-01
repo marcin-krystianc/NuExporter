@@ -1,0 +1,94 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+env:
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  # Enforces the consistency of code formatting using `.editorconfig` and the `dotnet-format` tool.
+  check-format:
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.id != github.event.pull_request.base.repo.id
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Setup .NET SDK v6.0.x
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 6.0.x
+      - name: Restore tools
+        run: dotnet tool restore
+      - name: Check format
+        run: dotnet format --check
+
+  build-test:
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.id != github.event.pull_request.base.repo.id
+    strategy:
+      matrix:
+        os: [ubuntu-18.04, windows-2019, macos-10.15]
+      fail-fast: false
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Setup .NET SDK v6.0.x
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 6.0.x
+      - name: Build
+        run: dotnet build --configuration=Release
+      - name: Run tests
+        shell: bash
+        run: |
+          dotnet test --configuration=Release --logger "GitHubActions;report-warnings=false" --no-build -v=Normal
+
+  package:
+    runs-on: windows-2019
+    needs: [build-test]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Setup .NET SDK v6.0.x
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 6.0.x
+      - name: Create NuGet packages
+        run: |
+          dotnet pack --configuration=Release --output dist @params
+
+          if ("${{ github.ref }}" -like "refs/tags/v*") {
+              $tag = "${{ github.ref }}".SubString(11)
+              $expectedNuExporterFile = "dist/NuExporter.$tag.nupkg"
+
+              # Check whether the tag and the package version match together
+              if (-not (Test-Path -Path $expectedNuExporterFile)) {
+                  echo "::error ::Expected file $expectedNuExporterFile doesn't exist"
+                  exit 1
+              }              
+          }
+          
+      - name: Upload NuGet package artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: nuget-packages
+          path: dist/*.nupkg
+
+  # Publish NuGet packages when a tag is pushed.
+  # Tests need to succeed for all components and on all platforms first,
+  # including having a tag name that matches the version number.
+  publish-release:
+    if: ${{ !github.event.repository.fork && startsWith(github.ref, 'refs/tags/v') }}
+    needs: package
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Download NuGet package artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: nuget-packages
+          path: dist
+      - name: Publish to NuGet
+        run: dotnet nuget push "dist/NuExporter.*.nupkg" --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json

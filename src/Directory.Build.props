@@ -1,0 +1,10 @@
+<Project>
+  <PropertyGroup>
+    <PackageProjectUrl>https://github.com/marcin-krystianc/NuExporter</PackageProjectUrl>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/marcin-krystianc/NuExporter</RepositoryUrl>
+    <Authors>Marcin Krystianc</Authors>
+    <Copyright>Copyright 2021-$([System.DateTime]::Now.ToString('yyyy')) Marcin Krystianc</Copyright>
+  </PropertyGroup>
+</Project>
