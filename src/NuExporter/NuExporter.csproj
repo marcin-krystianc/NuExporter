@@ -3,7 +3,7 @@
     <PropertyGroup>
         <OutputType>exe</OutputType>
         <TargetFramework>net6.0</TargetFramework>
-        <Version>0.1.0-alpha.20211201</Version>
+        <Version>0.1.0-alpha.20211202</Version>
         <PackAsTool>true</PackAsTool>
         <PackageOutputPath>../../dist</PackageOutputPath>
         <PackageReadmeFile>README.md</PackageReadmeFile>

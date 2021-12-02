@@ -27,7 +27,9 @@ public class Program
 
     static void DisplayHelp()
     {
-        var helpText = "TODO(marcink) \n";
+        var helpText =
+            "NuExporter is a dotnet that helps investigate NuGet restore issues. \n" +
+            "It lets you prepare a solution, which will be stripped of any sensitive information, so it can be shared publicly.\n";
 
         Console.Write(helpText);
     }
