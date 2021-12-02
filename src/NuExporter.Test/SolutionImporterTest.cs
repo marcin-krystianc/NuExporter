@@ -1,13 +1,13 @@
-﻿using System.IO;
+using System.IO;
 using System.Threading.Tasks;
 using NUnit.Framework;
 
 namespace NuExporter.Test;
 
 [TestFixture]
-public class SolutionImporterTest: BaseFixture
+public class SolutionImporterTest : BaseFixture
 {
-    public SolutionImporterTest () : base(copyInputToOutput:true)
+    public SolutionImporterTest() : base(copyInputToOutput: true)
     {
     }
 

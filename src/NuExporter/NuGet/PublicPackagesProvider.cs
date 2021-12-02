@@ -1,4 +1,4 @@
-﻿using System.Threading;
+using System.Threading;
 using System.Threading.Tasks;
 using NuGet.Common;
 using NuGet.Configuration;
@@ -9,7 +9,7 @@ namespace NuExporter.NuGet
     public class PublicPackagesProvider : IPublicPackagesProvider
     {
         private readonly SourceRepository _repository;
-        private readonly SourceCacheContext _cacheContext = new ();
+        private readonly SourceCacheContext _cacheContext = new();
 
         public PublicPackagesProvider(string publicSource)
         {

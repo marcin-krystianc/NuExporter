@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System.Threading.Tasks;
 using NUnit.Framework;
 
@@ -6,7 +6,7 @@ namespace NuExporter.Test;
 
 public class NuExporterTest : BaseFixture
 {
-    public NuExporterTest() : base(copyInputToOutput:false)
+    public NuExporterTest() : base(copyInputToOutput: false)
     {
     }
 

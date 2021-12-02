@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -6,12 +6,12 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.Build.Construction;
 using Newtonsoft.Json;
-using NuGet.Versioning;
-using Serilog;
 using NuExporter.Dto;
 using NuGet.Frameworks;
 using NuGet.Packaging;
 using NuGet.Packaging.Core;
+using NuGet.Versioning;
+using Serilog;
 
 namespace NuExporter;
 
@@ -63,7 +63,7 @@ public class SolutionImporter
 
             if (batch.Any())
             {
-                await processRunner.RunAsync("dotnet", new[] {"sln", "add"}.Concat(batch).ToArray());
+                await processRunner.RunAsync("dotnet", new[] { "sln", "add" }.Concat(batch).ToArray());
                 batch.Clear();
                 leftCharacters = cmdLengthLimit;
             }
@@ -226,7 +226,7 @@ public class SolutionImporter
             {
                 Id = projectDto.Properties[Projects.AssemblyName],
                 Version = NuGetVersion.Parse(projectDto.Properties[Projects.Version]),
-                Authors = new []{"NuExporter"},
+                Authors = new[] { "NuExporter" },
                 Description = "Created with NuExporter",
                 DependencyGroups = packageDependencyGroups.Any()
                     ? packageDependencyGroups
@@ -234,9 +234,9 @@ public class SolutionImporter
             };
 
             var manifest = new Manifest(metadata);
-                var manifestPath = Path.Combine(projectDirectory, nuspecFile);
-                using var stream = File.OpenWrite(manifestPath);
-                manifest.Save(stream);
+            var manifestPath = Path.Combine(projectDirectory, nuspecFile);
+            using var stream = File.OpenWrite(manifestPath);
+            manifest.Save(stream);
         }
 
         project.Save(projectPath);

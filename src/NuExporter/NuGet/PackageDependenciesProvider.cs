@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,7 +13,7 @@ namespace NuExporter.NuGet
     public class PackageDependencyInfoProvider : IPackageDependencyInfoProvider
     {
         private readonly List<SourceRepository> _repositories;
-        private readonly SourceCacheContext _cacheContext = new ();
+        private readonly SourceCacheContext _cacheContext = new();
 
         public PackageDependencyInfoProvider()
         {

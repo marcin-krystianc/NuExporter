@@ -1,14 +1,14 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Threading.Tasks;
 using FakeItEasy;
+using NuExporter.NuGet;
 using NuGet.Frameworks;
 using NuGet.Packaging;
 using NuGet.Packaging.Core;
 using NuGet.Protocol.Core.Types;
 using NuGet.Versioning;
 using NUnit.Framework;
-using NuExporter.NuGet;
 
 namespace NuExporter.Test;
 
@@ -20,7 +20,7 @@ public class SolutionExporterTest : BaseFixture
     private readonly IPackageDependencyInfoProvider _packageDependencyInfoProvider = A.Fake<IPackageDependencyInfoProvider>();
 
     private readonly PackageIdentity _nuget13 = new("NuGet001", new NuGetVersion("13.0.1"));
-    public SolutionExporterTest () : base(copyInputToOutput:false)
+    public SolutionExporterTest() : base(copyInputToOutput: false)
     {
     }
 

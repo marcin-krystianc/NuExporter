@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
@@ -9,12 +9,12 @@ using Microsoft.Build.Definition;
 using Microsoft.Build.Evaluation;
 using Microsoft.Build.Evaluation.Context;
 using Newtonsoft.Json;
-using NuGet.Packaging.Core;
-using NuGet.Versioning;
-using Serilog;
 using NuExporter.Dto;
 using NuExporter.NuGet;
 using NuGet.Packaging;
+using NuGet.Packaging.Core;
+using NuGet.Versioning;
+using Serilog;
 
 namespace NuExporter;
 
@@ -24,13 +24,13 @@ public class SolutionExporter
     private readonly IPackageDependencyInfoProvider _packageDependencyInfoProvider;
 
     private readonly Dictionary<string, string> _propertiesToExport = new(StringComparer.OrdinalIgnoreCase)
-        {
-            {Projects.ManagePackageVersionsCentrally, "false"},
-            {Projects.TargetFramework, ""},
-            {Projects.TargetFrameworks, ""},
-            {Projects.DisableImplicitFSharpCoreReference, "false"},
-            {Projects.DisableImplicitSystemValueTupleReference, "false"},
-        };
+    {
+        { Projects.ManagePackageVersionsCentrally, "false" },
+        { Projects.TargetFramework, "" },
+        { Projects.TargetFrameworks, "" },
+        { Projects.DisableImplicitFSharpCoreReference, "false" },
+        { Projects.DisableImplicitSystemValueTupleReference, "false" },
+    };
 
     private readonly ConcurrentDictionary<string, Lazy<Task<bool>>> _packagePublicPrivateDictionary =
         new(StringComparer.OrdinalIgnoreCase);
@@ -40,7 +40,8 @@ public class SolutionExporter
 
     private readonly JsonSerializerSettings _serializerSettings = new()
     {
-        Formatting = Formatting.Indented, DefaultValueHandling = DefaultValueHandling.Ignore
+        Formatting = Formatting.Indented,
+        DefaultValueHandling = DefaultValueHandling.Ignore
     };
 
     public SolutionExporter(IPublicPackagesProvider publicPackagesProvider,
