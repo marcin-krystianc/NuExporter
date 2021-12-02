@@ -29,7 +29,7 @@ public class Program
     {
         var helpText =
             "NuExporter is a dotnet that helps investigate NuGet restore issues. \n" +
-            "It lets you prepare a solution, which will be stripped of any sensitive information, so it can be shared publicly.\n";
+            "It lets you prepare a solution, which is stripped of any sensitive information, so it can be shared publicly.\n";
 
         Console.Write(helpText);
     }

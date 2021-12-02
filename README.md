@@ -2,7 +2,7 @@
 [![](https://img.shields.io/nuget/vpre/NuExporter)](https://www.nuget.org/packages/NuExporter/absoluteLatest)
 
 NuExporter is a dotnet that helps investigate NuGet restore issues.
-It lets you prepare a solution, which will be stripped of any sensitive information, so it can be shared publicly.
+It lets you prepare a solution, which is stripped of any sensitive information, so it can be shared publicly.
 
 # How to use it
 `dotnet tool install --global nuexporter`
