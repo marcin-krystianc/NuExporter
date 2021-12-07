@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Dasync.Collections;
 using Microsoft.Build.Construction;
 using Microsoft.Build.Definition;
 using Microsoft.Build.Evaluation;
 using Microsoft.Build.Evaluation.Context;
+using MoreLinq.Extensions;
 using Newtonsoft.Json;
 using NuExporter.Dto;
 using NuExporter.NuGet;
@@ -238,7 +240,7 @@ public class SolutionExporter
             .ToList();
 
         // precompute package privacy
-        await Parallel.ForEachAsync(packageIds, async (x, _) => await IsPublicPackageAsync(x));
+        await packageIds.ParallelForEachAsync(async (x, _) => await IsPublicPackageAsync(x));
 
         var exportedPackages = new HashSet<PackageIdentity>();
         var packagesToExport = new Queue<PackageIdentity>();
