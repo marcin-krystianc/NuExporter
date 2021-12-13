@@ -3,7 +3,7 @@
     <PropertyGroup>
         <OutputType>exe</OutputType>
         <TargetFramework>net5.0</TargetFramework>
-        <Version>0.1.1-alpha.20211207</Version>
+        <Version>0.1.2-alpha.20211213</Version>
         <LangVersion>latest</LangVersion>
         <PackAsTool>true</PackAsTool>
         <PackageOutputPath>../../dist</PackageOutputPath>
