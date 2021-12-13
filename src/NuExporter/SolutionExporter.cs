@@ -240,7 +240,7 @@ public class SolutionExporter
             // precompute package privacy in parallel
             Log.Information("Precomputing privacy status for {Count} package(s)", packageIds.Count);
             await packageIds.ParallelForEachAsync(
-                asyncItemAction:async (x, _) => await IsPublicPackageAsync(x),
+                asyncItemAction: async (x, _) => await IsPublicPackageAsync(x),
                 maxDegreeOfParallelism: 0,
                 breakLoopOnException: true
             );
