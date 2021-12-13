@@ -115,10 +115,6 @@ public class SolutionExporter
 
         foreach (var project in projects)
         {
-            if (project.FullPath.Contains("OrchardCore.Lucene.Abstractions.csproj"))
-            {
-            }
-
             Dictionary<string, string> packageVersions = null;
 
             if (project.IsCentralPackageVersionManagementEnabled())
@@ -239,8 +235,16 @@ public class SolutionExporter
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToList();
 
-        // precompute package privacy
-        await packageIds.ParallelForEachAsync(async (x, _) => await IsPublicPackageAsync(x));
+        if (packageIds.Any())
+        {
+            // precompute package privacy in parallel
+            Log.Information("Precomputing privacy status for {Count} package(s)", packageIds.Count);
+            await packageIds.ParallelForEachAsync(
+                asyncItemAction:async (x, _) => await IsPublicPackageAsync(x),
+                maxDegreeOfParallelism: 0,
+                breakLoopOnException: true
+            );
+        }
 
         var exportedPackages = new HashSet<PackageIdentity>();
         var packagesToExport = new Queue<PackageIdentity>();
