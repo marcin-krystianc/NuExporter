@@ -1,3 +1,6 @@
+using System;
+using System.Net;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using NuGet.Common;
@@ -21,10 +24,21 @@ namespace NuExporter.NuGet
         public async Task<bool> IsPublicAsync(string packageId)
         {
             var resource = await _repository.GetResourceAsync<MetadataResource>();
-            var latestVersion = await resource.GetLatestVersion(packageId, true, false, _cacheContext,
-                NullLogger.Instance, CancellationToken.None);
+            try
+            {
+                var latestVersion = await resource.GetLatestVersion(packageId, true, false, _cacheContext,
+                    NullLogger.Instance, CancellationToken.None);
 
-            return latestVersion != null;
+                return latestVersion != null;
+            }
+            catch (FatalProtocolException e) when (e.InnerException is HttpRequestException httpRequestException)
+            {
+                // Some NuGet sources throw 404 when asking for a non-existent package
+                if (httpRequestException.StatusCode == HttpStatusCode.NotFound)
+                    return false;
+
+                throw;
+            }
         }
     }
 }
