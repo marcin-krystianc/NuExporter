@@ -45,7 +45,9 @@ public class SolutionImporter
         }
 
         // What is the command line length limit?
-        var cmdLengthLimit = 32000; // https://devblogs.microsoft.com/oldnewthing/20031210-00/?p=41553
+        // Theoretically 32k - https://devblogs.microsoft.com/oldnewthing/20031210-00/?p=41553
+        // On some machines it fails if we use 32K limit :-(
+        var cmdLengthLimit = 2000;
         var batch = new List<string>();
         var leftCharacters = cmdLengthLimit;
         while (projectPaths.Any() || batch.Any())
