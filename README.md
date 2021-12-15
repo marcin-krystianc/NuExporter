@@ -10,7 +10,8 @@ It lets you prepare a solution, which is stripped of any sensitive information, 
 # How to use it?
 
 ## Exporting solution to a json file
-```nuexporter^
+```
+nuexporter^
  --solution-file=<solution_file_path>^
  --output-path=<output_path>^
  --anonymize=false^
