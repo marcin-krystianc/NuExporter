@@ -36,7 +36,7 @@ Created only when there are any private packages.
 Mapping of original names to anonymized ones.
 
 ## solution/
-Directory with imported solution from solution.json file.
+Directory containing the solution imported from solution.json file.
 
 ## packges/
-Directory with imported solution from packages.json file.
+Directory containing the solution imported from packages.json file.
