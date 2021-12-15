@@ -4,10 +4,10 @@
 NuExporter is a dotnet that helps investigate NuGet restore issues.
 It lets you prepare a solution, which is stripped of any sensitive information, so it can be shared publicly.
 
-# How to install it
+# How to install it?
 `dotnet tool install --global nuexporter`
 
-# How to use it
+# How to use it?
 
 ## Exporting solution to a json file
 ```nuexporter^
@@ -19,7 +19,7 @@ It lets you prepare a solution, which is stripped of any sensitive information, 
 ## Importing solution from a json file
 `nuexporter --output-path=<output_path>`
 
-# Which files are created by `NuExporter`
+# Which files are created by `NuExporter`?
 
 ## solution.json
 A file containing information about exported projects, their properties and references.
