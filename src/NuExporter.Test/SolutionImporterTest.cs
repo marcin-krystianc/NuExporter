@@ -19,6 +19,17 @@ public class SolutionImporterTest : BaseFixture
         await uut.ImportSolutionAsync(path);
     }
 
+    [Test]
+    public async Task ImportsPackages()
+    {
+        var uut = new SolutionImporter();
+        var path = Path.Combine(TestDataOutput, "packages.json");
+        await uut.ImportSolutionAsync(path);
+
+        Assert.That(Path.Combine(TestDataOutput, "global-packages"), Does.Exist);
+        Assert.That(Path.Combine(TestDataOutput, "artifacts"), Does.Exist);
+    }
+
     internal override void DiffFiles(string fileId, string expectedFile, string actualFile)
     {
         var fileExtension = Path.GetExtension(expectedFile);
