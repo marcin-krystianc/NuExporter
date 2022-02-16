@@ -54,9 +54,10 @@ public class SolutionImporter
         {
             if (projectPaths.Any())
             {
-                var projectPath = Path.GetRelativePath(workingDirectory, projectPaths.Dequeue());
+                var projectPath = Path.GetRelativePath(workingDirectory, projectPaths.Peek());
                 if (!batch.Any() || leftCharacters > projectPath.Length)
                 {
+                    projectPaths.Dequeue();
                     batch.Add(projectPath);
                     leftCharacters -= projectPath.Length;
                     continue;
