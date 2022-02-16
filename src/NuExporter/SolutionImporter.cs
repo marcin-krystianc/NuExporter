@@ -71,6 +71,25 @@ public class SolutionImporter
                 leftCharacters = cmdLengthLimit;
             }
         }
+
+        if (Path.GetFileName(jsonPath) == "packages.json")
+        {
+            var outputPath = Path.GetDirectoryName(jsonPath);
+            var globalPackagesPath = Path.Combine(outputPath, "global-packages");
+            var artifactsPath = Path.Combine(outputPath, "artifacts");
+            var configPath = Path.Combine(outputPath, "nuget.config");
+            if (Directory.Exists(globalPackagesPath))
+                Directory.Delete(globalPackagesPath, true);
+
+            Directory.CreateDirectory(globalPackagesPath);
+
+            if (Directory.Exists(artifactsPath))
+                Directory.Delete(artifactsPath, true);
+
+            Directory.CreateDirectory(artifactsPath);
+
+            await File.WriteAllTextAsync(configPath, Resources.GetResource("nugetconfig"));
+        }
     }
 
     private string WriteProject(string directory, ProjectDto projectDto)

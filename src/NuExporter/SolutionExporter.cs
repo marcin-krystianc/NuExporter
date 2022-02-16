@@ -80,24 +80,10 @@ public class SolutionExporter
         if (packageDtos.Any())
         {
             var pathPath = Path.Combine(outputPath, "packages.json");
-            var globalPackagesPath = Path.Combine(outputPath, "global-packages");
-            var artifactsPath = Path.Combine(outputPath, "artifacts");
-            var configPath = Path.Combine(outputPath, "nuget.config");
+
             Log.Information("Writing {Path}", pathPath);
 
             await File.WriteAllTextAsync(pathPath, JsonConvert.SerializeObject(packageDtos, _serializerSettings));
-
-            if (Directory.Exists(globalPackagesPath))
-                Directory.Delete(globalPackagesPath, true);
-
-            Directory.CreateDirectory(globalPackagesPath);
-
-            if (Directory.Exists(artifactsPath))
-                Directory.Delete(artifactsPath, true);
-
-            Directory.CreateDirectory(artifactsPath);
-
-            await File.WriteAllTextAsync(configPath, Resources.GetResource("nugetconfig"));
         }
 
         if (mapping.Any())
