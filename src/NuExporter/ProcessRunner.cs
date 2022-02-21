@@ -30,7 +30,7 @@ public class ProcessRunner
         await process.WaitForExitAsync();
         var outputs = await Task.WhenAll(outputTask, errorTask);
 
-        if (process.ExitCode != 0)
+        if (process.ExitCode != 0 || !string.IsNullOrWhiteSpace(outputs[1]))
         {
             throw new Exception(
                 $"Program '{fileName} {string.Join(" ", args)}' exited with exit code:{process.ExitCode}." +
