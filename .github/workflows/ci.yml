@@ -20,6 +20,7 @@ jobs:
         uses: actions/setup-dotnet@v1
         with:
           dotnet-version: 7.0.x
+          include-prerelease: true
       - name: Restore tools
         run: dotnet tool restore
       - name: Check format
@@ -39,6 +40,7 @@ jobs:
         uses: actions/setup-dotnet@v1
         with:
           dotnet-version: 7.0.x
+          include-prerelease: true
       - name: Setup .NET SDK v5.0.x
         uses: actions/setup-dotnet@v1
         with:
