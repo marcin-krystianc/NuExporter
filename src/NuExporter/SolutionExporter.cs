@@ -9,7 +9,6 @@ using Microsoft.Build.Construction;
 using Microsoft.Build.Definition;
 using Microsoft.Build.Evaluation;
 using Microsoft.Build.Evaluation.Context;
-using MoreLinq.Extensions;
 using Newtonsoft.Json;
 using NuExporter.Dto;
 using NuExporter.NuGet;
