@@ -16,10 +16,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Setup .NET SDK v6.0.x
+      - name: Setup .NET SDK v7.0.x
         uses: actions/setup-dotnet@v1
         with:
-          dotnet-version: 6.0.x
+          dotnet-version: 7.0.x
+          include-prerelease: true
       - name: Restore tools
         run: dotnet tool restore
       - name: Check format
@@ -35,10 +36,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Setup .NET SDK v6.0.x
+      - name: Setup .NET SDK 7.0.x
         uses: actions/setup-dotnet@v1
         with:
-          dotnet-version: 6.0.x
+          dotnet-version: 7.0.x
+          include-prerelease: true
       - name: Setup .NET SDK v5.0.x
         uses: actions/setup-dotnet@v1
         with:
@@ -56,10 +58,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Setup .NET SDK v6.0.x
+      - name: Setup .NET SDK v7.0.x
         uses: actions/setup-dotnet@v1
         with:
-          dotnet-version: 6.0.x
+          dotnet-version: 7.0.x
       - name: Setup .NET SDK v5.0.x
         uses: actions/setup-dotnet@v1
         with:
